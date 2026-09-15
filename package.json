@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mantine/core": "^7.17.8",
-    "@mantine/form": "^7.17.8",
-    "@mantine/hooks": "^7.17.8",
-    "@tabler/icons-react": "^3.46.0",
+    "@ant-design/icons": "^6.3.4",
+    "@ant-design/nextjs-registry": "^1.3.0",
+    "antd": "^6.6.4",
+    "framer-motion": "^13.3.0",
     "next": "15.5.25",
     "react": "19.1.0",
     "react-dom": "19.1.0"
@@ -26,8 +26,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.25",
     "postcss": "^8.5.28",
-    "postcss-preset-mantine": "^1.18.0",
-    "postcss-simple-vars": "^7.0.1",
     "typescript": "^5"
   }
 }

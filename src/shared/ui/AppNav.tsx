@@ -2,17 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Button, Flex, Menu, Space, Tag, Typography } from "antd";
 import {
-  Anchor,
-  Badge,
-  Group,
-  Button,
-  Text,
-  Title,
-} from "@mantine/core";
-import { IconChartCandle, IconLogout, IconBriefcase } from "@tabler/icons-react";
+  WalletOutlined,
+  LineChartOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
 import { clearToken } from "@/shared/lib/auth-token";
 import * as authApi from "@/features/auth/api";
+
+const { Title, Text } = Typography;
 
 export function AppNav({ email }: { email?: string }) {
   const pathname = usePathname();
@@ -28,56 +27,58 @@ export function AppNav({ email }: { email?: string }) {
     router.replace("/login");
   }
 
+  const selected = pathname.startsWith("/compare")
+    ? ["compare"]
+    : pathname.startsWith("/portfolios")
+      ? ["portfolios"]
+      : [];
+
   return (
-    <Group justify="space-between" mb="lg" wrap="wrap" gap="sm">
-      <Group gap="md">
-        <Title order={3} c="brand.8">
+    <Flex
+      justify="space-between"
+      align="center"
+      wrap="wrap"
+      gap={12}
+      style={{ marginBottom: 20 }}
+    >
+      <Space align="center" size="middle">
+        <Title level={3} style={{ margin: 0, color: "#099268" }}>
           iWealth Better
         </Title>
-        <Badge variant="light" color="gray" size="sm">
-          stub v0
-        </Badge>
-      </Group>
-      <Group gap="sm">
-        <Anchor
-          component={Link}
-          href="/portfolios"
-          size="sm"
-          fw={pathname.startsWith("/portfolios") ? 700 : 500}
-          c={pathname.startsWith("/portfolios") ? "brand.8" : "dimmed"}
-        >
-          <Group gap={4}>
-            <IconBriefcase size={16} />
-            พอร์ต
-          </Group>
-        </Anchor>
-        <Anchor
-          component={Link}
-          href="/compare"
-          size="sm"
-          fw={pathname.startsWith("/compare") ? 700 : 500}
-          c={pathname.startsWith("/compare") ? "brand.8" : "dimmed"}
-        >
-          <Group gap={4}>
-            <IconChartCandle size={16} />
-            Compare
-          </Group>
-        </Anchor>
+        <Tag>stub v0</Tag>
+      </Space>
+      <Space wrap size="middle">
+        <Menu
+          mode="horizontal"
+          selectedKeys={selected}
+          style={{ border: "none", background: "transparent", minWidth: 180 }}
+          items={[
+            {
+              key: "portfolios",
+              icon: <WalletOutlined />,
+              label: <Link href="/portfolios">พอร์ต</Link>,
+            },
+            {
+              key: "compare",
+              icon: <LineChartOutlined />,
+              label: <Link href="/compare">Compare</Link>,
+            },
+          ]}
+        />
         {email ? (
-          <Text size="xs" c="dimmed">
+          <Text type="secondary" style={{ fontSize: 12 }}>
             {email}
           </Text>
         ) : null}
         <Button
-          size="xs"
-          variant="subtle"
-          color="gray"
-          leftSection={<IconLogout size={14} />}
-          onClick={onLogout}
+          type="text"
+          size="small"
+          icon={<LogoutOutlined />}
+          onClick={() => void onLogout()}
         >
           ออกจากระบบ
         </Button>
-      </Group>
-    </Group>
+      </Space>
+    </Flex>
   );
 }

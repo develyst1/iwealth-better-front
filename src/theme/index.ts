@@ -1,10 +1,22 @@
-import { createTheme } from "@mantine/core";
-import { brand } from "./colors";
+import type { ThemeConfig } from "antd";
+import {
+  brandPrimary,
+  brandPrimaryActive,
+  brandPrimaryHover,
+} from "./colors";
 
-export const theme = createTheme({
-  primaryColor: "brand",
-  colors: { brand },
-  defaultRadius: "md",
-  fontFamily: "var(--font-thai), sans-serif",
-  headings: { fontFamily: "var(--font-thai), sans-serif", fontWeight: "700" },
-});
+export const antdTheme: ThemeConfig = {
+  token: {
+    colorPrimary: brandPrimary,
+    colorLink: brandPrimary,
+    colorInfo: brandPrimary,
+    borderRadius: 8,
+    fontFamily: "var(--font-thai), sans-serif",
+  },
+  components: {
+    Button: {
+      colorPrimaryHover: brandPrimaryHover,
+      colorPrimaryActive: brandPrimaryActive,
+    },
+  },
+};

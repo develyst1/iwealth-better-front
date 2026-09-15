@@ -1,7 +1,6 @@
 "use client";
 
-import { Alert } from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { Alert } from "antd";
 import { ApiError } from "@/shared/lib/types";
 
 export function ErrorAlert({
@@ -23,13 +22,11 @@ export function ErrorAlert({
 
   return (
     <Alert
-      color="red"
-      variant="light"
-      title={title}
-      icon={<IconAlertCircle size={18} />}
-      mb="md"
-    >
-      {message}
-    </Alert>
+      type="error"
+      showIcon
+      message={title}
+      description={message}
+      style={{ marginBottom: 16 }}
+    />
   );
 }

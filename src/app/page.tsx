@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Center, Loader } from "@mantine/core";
+import { Flex, Spin } from "antd";
 import { getToken } from "@/shared/lib/auth-token";
 
 export default function HomePage() {
@@ -13,8 +13,8 @@ export default function HomePage() {
   }, [router]);
 
   return (
-    <Center mih={240}>
-      <Loader />
-    </Center>
+    <Flex align="center" justify="center" style={{ minHeight: 240 }}>
+      <Spin size="large" />
+    </Flex>
   );
 }

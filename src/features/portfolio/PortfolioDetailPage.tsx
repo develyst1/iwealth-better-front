@@ -4,27 +4,33 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ActionIcon,
-  Anchor,
   Button,
-  Group,
-  Loader,
+  Flex,
+  Form,
+  Input,
+  InputNumber,
   Modal,
-  NumberInput,
-  Stack,
+  Space,
+  Spin,
   Table,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
-import { IconChartCandle, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+  Typography,
+} from "antd";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  LineChartOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import type { Holding, Portfolio, User } from "@/shared/lib/types";
 import { getToken } from "@/shared/lib/auth-token";
 import { AppNav } from "@/shared/ui/AppNav";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { ErrorAlert } from "@/shared/ui/ErrorAlert";
+import { ShimmerButton } from "@/shared/ui/magic/ShimmerButton";
 import * as authApi from "@/features/auth/api";
 import * as portfolioApi from "./api";
+
+const { Title, Text } = Typography;
 
 export function PortfolioDetailPage({ portfolioId }: { portfolioId: string }) {
   const router = useRouter();
@@ -35,8 +41,8 @@ export function PortfolioDetailPage({ portfolioId }: { portfolioId: string }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Holding | null>(null);
   const [symbol, setSymbol] = useState("");
-  const [quantity, setQuantity] = useState<number | string>(1);
-  const [avgCost, setAvgCost] = useState<number | string>(0);
+  const [quantity, setQuantity] = useState<number | null>(1);
+  const [avgCost, setAvgCost] = useState<number | null>(0);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
@@ -106,7 +112,7 @@ export function PortfolioDetailPage({ portfolioId }: { portfolioId: string }) {
   }
 
   async function onDelete(h: Holding) {
-    if (!confirm(`ลบ ${h.symbol}?`)) return;
+    if (!window.confirm(`ลบ ${h.symbol}?`)) return;
     setBusy(true);
     setError(null);
     try {
@@ -121,123 +127,143 @@ export function PortfolioDetailPage({ portfolioId }: { portfolioId: string }) {
 
   const holdings = portfolio?.holdings ?? [];
 
-  return (
-    <Stack gap="md">
-      <AppNav email={user?.email} />
-      <Group justify="space-between" wrap="wrap">
-        <div>
-          <Anchor component={Link} href="/portfolios" size="sm" c="dimmed">
-            ← พอร์ตทั้งหมด
-          </Anchor>
-          <Title order={2}>{portfolio?.name ?? "พอร์ต"}</Title>
-        </div>
-        <Group>
+  const columns = [
+    {
+      title: "Symbol",
+      dataIndex: "symbol",
+      key: "symbol",
+      render: (s: string) => <Text strong>{s}</Text>,
+    },
+    {
+      title: "Qty",
+      dataIndex: "quantity",
+      key: "quantity",
+    },
+    {
+      title: "Avg cost (USD)",
+      dataIndex: "avgCost",
+      key: "avgCost",
+      render: (v: number) => v.toFixed(2),
+    },
+    {
+      title: "",
+      key: "actions",
+      align: "right" as const,
+      render: (_: unknown, h: Holding) => (
+        <Space>
           <Button
-            component={Link}
-            href={`/compare?portfolioId=${encodeURIComponent(portfolioId)}`}
-            variant="light"
-            leftSection={<IconChartCandle size={16} />}
+            type="link"
+            size="small"
+            href={`/compare?symbol=${encodeURIComponent(h.symbol)}&portfolioId=${encodeURIComponent(portfolioId)}`}
           >
             Compare
           </Button>
-          <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
-            เพิ่ม holding
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            aria-label="edit"
+            onClick={() => openEdit(h)}
+          />
+          <Button
+            type="text"
+            danger
+            size="small"
+            icon={<DeleteOutlined />}
+            aria-label="delete"
+            disabled={busy}
+            onClick={() => void onDelete(h)}
+          />
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+      <AppNav email={user?.email} />
+      <Flex justify="space-between" align="flex-start" wrap="wrap" gap={12}>
+        <div>
+          <Link href="/portfolios" style={{ fontSize: 13, color: "#8c8c8c" }}>
+            ← พอร์ตทั้งหมด
+          </Link>
+          <Title level={2} style={{ margin: "4px 0 0" }}>
+            {portfolio?.name ?? "พอร์ต"}
+          </Title>
+        </div>
+        <Space wrap>
+          <Button
+            icon={<LineChartOutlined />}
+            href={`/compare?portfolioId=${encodeURIComponent(portfolioId)}`}
+          >
+            Compare
           </Button>
-        </Group>
-      </Group>
+          <ShimmerButton icon={<PlusOutlined />} onClick={openCreate}>
+            เพิ่ม holding
+          </ShimmerButton>
+        </Space>
+      </Flex>
       <ErrorAlert error={error} />
       {loading ? (
-        <Loader mx="auto" />
+        <Flex justify="center" style={{ padding: 40 }}>
+          <Spin size="large" />
+        </Flex>
       ) : holdings.length === 0 ? (
         <EmptyState
-          icon={<IconPlus size={28} />}
+          icon={<PlusOutlined />}
           title="ยังไม่มี holdings"
           detail="เพิ่มสัญลักษณ์ (เช่น AAPL) พร้อมจำนวนและต้นทุนเฉลี่ย"
         />
       ) : (
-        <Table striped highlightOnHover withTableBorder>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Symbol</Table.Th>
-              <Table.Th>Qty</Table.Th>
-              <Table.Th>Avg cost (USD)</Table.Th>
-              <Table.Th />
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {holdings.map((h) => (
-              <Table.Tr key={h.symbol}>
-                <Table.Td>
-                  <Text fw={600}>{h.symbol}</Text>
-                </Table.Td>
-                <Table.Td>{h.quantity}</Table.Td>
-                <Table.Td>{h.avgCost.toFixed(2)}</Table.Td>
-                <Table.Td>
-                  <Group gap={4} justify="flex-end">
-                    <Button
-                      component={Link}
-                      href={`/compare?symbol=${encodeURIComponent(h.symbol)}&portfolioId=${encodeURIComponent(portfolioId)}`}
-                      size="compact-xs"
-                      variant="subtle"
-                    >
-                      Compare
-                    </Button>
-                    <ActionIcon
-                      variant="subtle"
-                      aria-label="edit"
-                      onClick={() => openEdit(h)}
-                    >
-                      <IconPencil size={16} />
-                    </ActionIcon>
-                    <ActionIcon
-                      variant="subtle"
-                      color="red"
-                      aria-label="delete"
-                      disabled={busy}
-                      onClick={() => void onDelete(h)}
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Group>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <Table
+          rowKey="symbol"
+          dataSource={holdings}
+          columns={columns}
+          pagination={false}
+          size="middle"
+          scroll={{ x: true }}
+        />
       )}
 
       <Modal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
         title={editing ? `แก้ไข ${editing.symbol}` : "เพิ่ม holding"}
+        footer={null}
+        destroyOnHidden
       >
-        <Stack>
-          <TextInput
-            label="Symbol"
-            placeholder="AAPL"
-            disabled={!!editing}
-            value={symbol}
-            onChange={(e) => setSymbol(e.currentTarget.value.toUpperCase())}
-          />
-          <NumberInput
-            label="Quantity"
-            min={0.0001}
-            decimalScale={4}
-            value={quantity}
-            onChange={setQuantity}
-          />
-          <NumberInput
-            label="Avg cost (USD)"
-            min={0}
-            decimalScale={4}
-            value={avgCost}
-            onChange={setAvgCost}
-          />
-          <Button loading={busy} onClick={() => void onSave()}>
+        <Form layout="vertical" onFinish={() => void onSave()}>
+          <Form.Item label="Symbol" required>
+            <Input
+              placeholder="AAPL"
+              disabled={!!editing}
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            />
+          </Form.Item>
+          <Form.Item label="Quantity" required>
+            <InputNumber
+              min={0.0001}
+              step={1}
+              style={{ width: "100%" }}
+              value={quantity}
+              onChange={(v) => setQuantity(v)}
+            />
+          </Form.Item>
+          <Form.Item label="Avg cost (USD)" required>
+            <InputNumber
+              min={0}
+              step={0.01}
+              style={{ width: "100%" }}
+              value={avgCost}
+              onChange={(v) => setAvgCost(v)}
+            />
+          </Form.Item>
+          <ShimmerButton htmlType="submit" loading={busy} block>
             บันทึก
-          </Button>
-        </Stack>
+          </ShimmerButton>
+        </Form>
       </Modal>
-    </Stack>
+    </Space>
   );
 }

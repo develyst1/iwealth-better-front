@@ -4,30 +4,32 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ActionIcon,
   Button,
-  Group,
-  Loader,
+  Card,
+  Flex,
+  Form,
+  Input,
   Modal,
-  Paper,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
+  Space,
+  Spin,
+  Typography,
+} from "antd";
 import {
-  IconBriefcaseOff,
-  IconPencil,
-  IconPlus,
-  IconTrash,
-} from "@tabler/icons-react";
+  DeleteOutlined,
+  EditOutlined,
+  FolderOpenOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import type { Portfolio, User } from "@/shared/lib/types";
 import { getToken } from "@/shared/lib/auth-token";
 import { AppNav } from "@/shared/ui/AppNav";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { ErrorAlert } from "@/shared/ui/ErrorAlert";
+import { ShimmerButton } from "@/shared/ui/magic/ShimmerButton";
 import * as authApi from "@/features/auth/api";
 import * as portfolioApi from "./api";
+
+const { Title, Text } = Typography;
 
 export function PortfolioListPage() {
   const router = useRouter();
@@ -101,7 +103,7 @@ export function PortfolioListPage() {
   }
 
   async function onDelete(p: Portfolio) {
-    if (!confirm(`ลบพอร์ต "${p.name}" ?`)) return;
+    if (!window.confirm(`ลบพอร์ต "${p.name}" ?`)) return;
     setBusy(true);
     setError(null);
     try {
@@ -115,117 +117,125 @@ export function PortfolioListPage() {
   }
 
   return (
-    <Stack gap="md">
+    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <AppNav email={user?.email} />
-      <Group justify="space-between">
-        <Title order={2}>พอร์ตของฉัน</Title>
-        <Button
-          leftSection={<IconPlus size={16} />}
+      <Flex justify="space-between" align="center" wrap="wrap" gap={12}>
+        <Title level={2} style={{ margin: 0 }}>
+          พอร์ตของฉัน
+        </Title>
+        <ShimmerButton
+          icon={<PlusOutlined />}
           onClick={() => {
             setName("");
             setCreateOpen(true);
           }}
         >
           สร้างพอร์ต
-        </Button>
-      </Group>
+        </ShimmerButton>
+      </Flex>
       <ErrorAlert error={error} />
       {loading ? (
-        <Loader mx="auto" />
+        <Flex justify="center" style={{ padding: 40 }}>
+          <Spin size="large" />
+        </Flex>
       ) : items.length === 0 ? (
         <EmptyState
-          icon={<IconBriefcaseOff size={28} />}
+          icon={<FolderOpenOutlined />}
           title="ยังไม่มีพอร์ต"
           detail="สร้างพอร์ตแรกเพื่อบันทึก holdings และเทียบเหตุการณ์หุ้น"
         />
       ) : (
-        <Stack gap="sm">
+        <Space orientation="vertical" size="small" style={{ width: "100%" }}>
           {items.map((p) => (
-            <Paper key={p.id} withBorder p="md" radius="md">
-              <Group justify="space-between" wrap="nowrap">
+            <Card key={p.id} size="small">
+              <Flex justify="space-between" align="center" gap={12} wrap="wrap">
                 <div>
-                  <Text
-                    component={Link}
+                  <Link
                     href={`/portfolios/${p.id}`}
-                    fw={600}
-                    c="brand.8"
-                    style={{ textDecoration: "none" }}
+                    style={{
+                      fontWeight: 600,
+                      color: "#099268",
+                      textDecoration: "none",
+                    }}
                   >
                     {p.name}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {p.currency ?? "USD"}
-                  </Text>
+                  </Link>
+                  <div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {p.currency ?? "USD"}
+                    </Text>
+                  </div>
                 </div>
-                <Group gap={4}>
-                  <Button
-                    component={Link}
-                    href={`/portfolios/${p.id}`}
-                    size="xs"
-                    variant="light"
-                  >
+                <Space>
+                  <Button href={`/portfolios/${p.id}`} size="small">
                     เข้าพอร์ต
                   </Button>
-                  <ActionIcon
-                    variant="subtle"
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<EditOutlined />}
                     aria-label="rename"
                     onClick={() => {
                       setRenameTarget(p);
                       setName(p.name);
                     }}
-                  >
-                    <IconPencil size={16} />
-                  </ActionIcon>
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
+                  />
+                  <Button
+                    type="text"
+                    danger
+                    size="small"
+                    icon={<DeleteOutlined />}
                     aria-label="delete"
                     disabled={busy}
                     onClick={() => void onDelete(p)}
-                  >
-                    <IconTrash size={16} />
-                  </ActionIcon>
-                </Group>
-              </Group>
-            </Paper>
+                  />
+                </Space>
+              </Flex>
+            </Card>
           ))}
-        </Stack>
+        </Space>
       )}
 
       <Modal
-        opened={createOpen}
-        onClose={() => setCreateOpen(false)}
+        open={createOpen}
+        onCancel={() => setCreateOpen(false)}
         title="สร้างพอร์ต"
+        footer={null}
+        destroyOnHidden
       >
-        <Stack>
-          <TextInput
-            label="ชื่อพอร์ต"
-            value={name}
-            onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="เช่น Core US"
-          />
-          <Button loading={busy} onClick={() => void onCreate()}>
+        <Form layout="vertical" onFinish={() => void onCreate()}>
+          <Form.Item label="ชื่อพอร์ต" required>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="เช่น Core US"
+            />
+          </Form.Item>
+          <ShimmerButton htmlType="submit" loading={busy} block>
             สร้าง
-          </Button>
-        </Stack>
+          </ShimmerButton>
+        </Form>
       </Modal>
 
       <Modal
-        opened={!!renameTarget}
-        onClose={() => setRenameTarget(null)}
+        open={!!renameTarget}
+        onCancel={() => setRenameTarget(null)}
         title="เปลี่ยนชื่อพอร์ต"
+        footer={null}
+        destroyOnHidden
       >
-        <Stack>
-          <TextInput
-            label="ชื่อพอร์ต"
-            value={name}
-            onChange={(e) => setName(e.currentTarget.value)}
-          />
-          <Button loading={busy} onClick={() => void onRename()}>
+        <Form layout="vertical" onFinish={() => void onRename()}>
+          <Form.Item label="ชื่อพอร์ต" required>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Form.Item>
+          <ShimmerButton htmlType="submit" loading={busy} block>
             บันทึก
-          </Button>
-        </Stack>
+          </ShimmerButton>
+        </Form>
       </Modal>
-    </Stack>
+    </Space>
   );
 }

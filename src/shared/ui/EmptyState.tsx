@@ -1,28 +1,34 @@
 "use client";
 
-import { Stack, Text, ThemeIcon } from "@mantine/core";
+import { Empty, Flex, Typography } from "antd";
 import type { ReactNode } from "react";
+
+const { Text, Title } = Typography;
 
 export function EmptyState({
   icon,
   title,
   detail,
 }: {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   detail?: string;
 }) {
   return (
-    <Stack align="center" gap="sm" py="xl">
-      <ThemeIcon size={56} radius="xl" variant="light" color="brand">
-        {icon}
-      </ThemeIcon>
-      <Text fw={700}>{title}</Text>
+    <Flex vertical align="center" gap={8} style={{ padding: "32px 0" }}>
+      <Empty
+        image={icon ? Empty.PRESENTED_IMAGE_SIMPLE : undefined}
+        description={null}
+      />
+      {icon ? <div style={{ fontSize: 28, color: "#0ca678" }}>{icon}</div> : null}
+      <Title level={5} style={{ margin: 0 }}>
+        {title}
+      </Title>
       {detail ? (
-        <Text size="sm" c="dimmed" ta="center" maw={400}>
+        <Text type="secondary" style={{ textAlign: "center", maxWidth: 400 }}>
           {detail}
         </Text>
       ) : null}
-    </Stack>
+    </Flex>
   );
 }

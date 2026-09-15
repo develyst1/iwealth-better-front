@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import { Center, Loader } from "@mantine/core";
+import { Flex, Spin } from "antd";
 import { ComparePage } from "@/features/compare/ComparePage";
 
 export default function CompareRoute() {
   return (
     <Suspense
       fallback={
-        <Center mih={240}>
-          <Loader />
-        </Center>
+        <Flex align="center" justify="center" style={{ minHeight: 240 }}>
+          <Spin size="large" />
+        </Flex>
       }
     >
       <ComparePage />

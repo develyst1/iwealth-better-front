@@ -3,23 +3,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  Badge,
-  Button,
-  Group,
-  Loader,
-  Paper,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-  Title,
+  Card,
+  Flex,
+  Input,
   List,
-} from "@mantine/core";
+  Select,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+} from "antd";
 import {
-  IconAlertTriangle,
-  IconBrain,
-  IconChartCandle,
-} from "@tabler/icons-react";
+  LineChartOutlined,
+  ThunderboltOutlined,
+  WarningOutlined,
+} from "@ant-design/icons";
 import type {
   CompareResult,
   Holding,
@@ -31,49 +29,47 @@ import { getToken } from "@/shared/lib/auth-token";
 import { AppNav } from "@/shared/ui/AppNav";
 import { EmptyState } from "@/shared/ui/EmptyState";
 import { ErrorAlert } from "@/shared/ui/ErrorAlert";
+import { ShimmerButton } from "@/shared/ui/magic/ShimmerButton";
 import * as authApi from "@/features/auth/api";
 import * as portfolioApi from "@/features/portfolio/api";
 import * as compareApi from "./api";
 
+const { Title, Text } = Typography;
+
 function StubBarsChart({ bars }: { bars: CompareResult["bars"] }) {
   if (!bars.length) {
-    return (
-      <Text size="sm" c="dimmed">
-        ไม่มีข้อมูลราคา (bars)
-      </Text>
-    );
+    return <Text type="secondary">ไม่มีข้อมูลราคา (bars)</Text>;
   }
   const closes = bars.map((b) => b.close);
   const min = Math.min(...closes);
   const max = Math.max(...closes);
   const span = max - min || 1;
-  const sample = bars.filter((_, i) => i % Math.max(1, Math.floor(bars.length / 40)) === 0).slice(0, 48);
+  const sample = bars
+    .filter(
+      (_, i) => i % Math.max(1, Math.floor(bars.length / 40)) === 0,
+    )
+    .slice(0, 48);
 
   return (
-    <Stack gap={4}>
-      <Group gap={2} align="flex-end" h={120} wrap="nowrap" style={{ overflowX: "auto" }}>
+    <Space orientation="vertical" size={4} style={{ width: "100%" }}>
+      <div className="stub-bars">
         {sample.map((b) => {
           const h = 16 + ((b.close - min) / span) * 90;
           return (
             <div
               key={b.date}
               title={`${b.date}: ${b.close}`}
-              style={{
-                width: 8,
-                minWidth: 8,
-                height: h,
-                background: "var(--mantine-color-brand-6)",
-                borderRadius: 2,
-                opacity: 0.85,
-              }}
+              className="stub-bars__bar"
+              style={{ height: h }}
             />
           );
         })}
-      </Group>
-      <Text size="xs" c="dimmed">
-        Stub bars · {bars.length} points · close {min.toFixed(2)} – {max.toFixed(2)}
+      </div>
+      <Text type="secondary" style={{ fontSize: 12 }}>
+        Stub bars · {bars.length} points · close {min.toFixed(2)} –{" "}
+        {max.toFixed(2)}
       </Text>
-    </Stack>
+    </Space>
   );
 }
 
@@ -188,54 +184,75 @@ export function ComparePage() {
 
   const adapterFail =
     error instanceof ApiError &&
-    (error.status === 503 || error.code === "ADAPTER_ERROR" || error.code === "ADAPTER_FAIL");
+    (error.status === 503 ||
+      error.code === "ADAPTER_ERROR" ||
+      error.code === "ADAPTER_FAIL");
 
   return (
-    <Stack gap="md">
+    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <AppNav email={user?.email} />
-      <Title order={2}>Compare — เทียบเหตุการณ์</Title>
-      <Text size="sm" c="dimmed">
-        เลือกสัญลักษณ์จาก holdings หรือพิมพ์เอง · ข้อมูลราคา/เหตุการณ์มาจาก stub adapter ผ่าน back
-      </Text>
+      <div>
+        <Title level={2} style={{ marginBottom: 4 }}>
+          Compare — เทียบเหตุการณ์
+        </Title>
+        <Text type="secondary">
+          เลือกสัญลักษณ์จาก holdings หรือพิมพ์เอง · ข้อมูลราคา/เหตุการณ์มาจาก
+          stub adapter ผ่าน back
+        </Text>
+      </div>
 
       {bootLoading ? (
-        <Loader mx="auto" />
+        <Flex justify="center" style={{ padding: 24 }}>
+          <Spin size="large" />
+        </Flex>
       ) : (
-        <Paper withBorder p="md" radius="md">
-          <Group align="flex-end" wrap="wrap">
+        <Card size="small">
+          <Flex align="flex-end" wrap="wrap" gap={12}>
             {holdingOptions.length > 0 ? (
-              <Select
-                label="จาก holdings"
-                placeholder="เลือก symbol"
-                data={holdingOptions}
-                value={holdingOptions.some((o) => o.value === symbol) ? symbol : null}
-                onChange={(v) => {
-                  if (v) {
-                    setSymbol(v);
-                    setTyped(v);
+              <div>
+                <Text style={{ display: "block", marginBottom: 4 }}>
+                  จาก holdings
+                </Text>
+                <Select
+                  placeholder="เลือก symbol"
+                  options={holdingOptions}
+                  value={
+                    holdingOptions.some((o) => o.value === symbol)
+                      ? symbol
+                      : undefined
                   }
-                }}
-                searchable
-                clearable
-                w={220}
-              />
+                  onChange={(v) => {
+                    if (v) {
+                      setSymbol(v);
+                      setTyped(v);
+                    }
+                  }}
+                  showSearch
+                  allowClear
+                  style={{ width: 220 }}
+                />
+              </div>
             ) : null}
-            <TextInput
-              label="หรือพิมพ์ symbol"
-              placeholder="AAPL"
-              value={typed}
-              onChange={(e) => setTyped(e.currentTarget.value.toUpperCase())}
-              w={160}
-            />
-            <Button
-              leftSection={<IconChartCandle size={16} />}
+            <div>
+              <Text style={{ display: "block", marginBottom: 4 }}>
+                หรือพิมพ์ symbol
+              </Text>
+              <Input
+                placeholder="AAPL"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value.toUpperCase())}
+                style={{ width: 160 }}
+              />
+            </div>
+            <ShimmerButton
+              icon={<LineChartOutlined />}
               loading={loading}
               onClick={() => void runCompare(typed || symbol)}
             >
               โหลดเปรียบเทียบ
-            </Button>
-          </Group>
-        </Paper>
+            </ShimmerButton>
+          </Flex>
+        </Card>
       )}
 
       <ErrorAlert
@@ -245,71 +262,74 @@ export function ComparePage() {
 
       {!loading && !result && !error ? (
         <EmptyState
-          icon={<IconChartCandle size={28} />}
+          icon={<LineChartOutlined />}
           title="ยังไม่มีผลเปรียบเทียบ"
           detail="เลือก symbol แล้วกดโหลดเปรียบเทียบ"
         />
       ) : null}
 
-      {loading ? <Loader mx="auto" /> : null}
+      {loading ? (
+        <Flex justify="center">
+          <Spin />
+        </Flex>
+      ) : null}
 
       {result ? (
-        <Stack gap="md">
-          <Paper withBorder p="md" radius="md">
-            <Group justify="space-between" mb="sm">
-              <Group gap="xs">
-                <Text fw={700}>{result.symbol}</Text>
-                <Badge variant="light">
+        <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+          <Card size="small">
+            <Flex
+              justify="space-between"
+              align="center"
+              wrap="wrap"
+              gap={12}
+              style={{ marginBottom: 12 }}
+            >
+              <Space>
+                <Text strong>{result.symbol}</Text>
+                <Tag>
                   {result.range.from} → {result.range.to}
-                </Badge>
-              </Group>
-              <Button
-                leftSection={<IconBrain size={16} />}
+                </Tag>
+              </Space>
+              <ShimmerButton
+                icon={<ThunderboltOutlined />}
                 loading={summarizing}
                 onClick={() => void onSummarize()}
               >
                 สรุปด้วย AI
-              </Button>
-            </Group>
-            <Text size="sm" fw={600} mb={6}>
+              </ShimmerButton>
+            </Flex>
+            <Text strong style={{ display: "block", marginBottom: 6 }}>
               Bars (stub)
             </Text>
             <StubBarsChart bars={result.bars} />
-          </Paper>
+          </Card>
 
-          <Paper withBorder p="md" radius="md">
-            <Text fw={600} mb="sm">
-              Events
-            </Text>
+          <Card size="small" title="Events">
             {result.events.length === 0 ? (
-              <Text size="sm" c="dimmed">
-                ไม่มีเหตุการณ์ในช่วงนี้
-              </Text>
+              <Text type="secondary">ไม่มีเหตุการณ์ในช่วงนี้</Text>
             ) : (
-              <List spacing="xs" size="sm">
-                {result.events.map((ev) => (
-                  <List.Item key={ev.id}>
-                    <Group gap="xs" wrap="wrap">
-                      <Badge size="xs" variant="outline">
-                        {ev.type}
-                      </Badge>
-                      <Text size="sm" span>
+              <List
+                size="small"
+                dataSource={result.events}
+                renderItem={(ev) => (
+                  <List.Item>
+                    <Space wrap>
+                      <Tag>{ev.type}</Tag>
+                      <Text>
                         {ev.occurredAt.slice(0, 10)} — {ev.title}
                       </Text>
-                    </Group>
+                    </Space>
                   </List.Item>
-                ))}
-              </List>
+                )}
+              />
             )}
-          </Paper>
+          </Card>
 
-          <Paper withBorder p="md" radius="md">
-            <Text fw={600} mb="sm">
-              สรุป AI
-            </Text>
-            {summaryError instanceof ApiError && summaryError.status === 503 ? (
+          <Card size="small" title="สรุป AI">
+            {summaryError instanceof ApiError &&
+            summaryError.status === 503 ? (
               <EmptyState
-                icon={<IconAlertTriangle size={28} />}
+                icon={<WarningOutlined />}
                 title="LLM ไม่พร้อม (503)"
                 detail={
                   summaryError.message ||
@@ -317,20 +337,22 @@ export function ComparePage() {
                 }
               />
             ) : (
-              <ErrorAlert error={summaryError} title="สรุปด้วย AI ไม่สำเร็จ" />
+              <ErrorAlert
+                error={summaryError}
+                title="สรุปด้วย AI ไม่สำเร็จ"
+              />
             )}
             {summary ? (
-              <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
-                {summary}
-              </Text>
+              <Text style={{ whiteSpace: "pre-wrap" }}>{summary}</Text>
             ) : !summaryError ? (
-              <Text size="sm" c="dimmed">
-                กดปุ่ม &quot;สรุปด้วย AI&quot; เพื่อขอสรุปจาก back (ไม่เรียก vendor จาก browser)
+              <Text type="secondary">
+                กดปุ่ม &quot;สรุปด้วย AI&quot; เพื่อขอสรุปจาก back
+                (ไม่เรียก vendor จาก browser)
               </Text>
             ) : null}
-          </Paper>
-        </Stack>
+          </Card>
+        </Space>
       ) : null}
-    </Stack>
+    </Space>
   );
 }

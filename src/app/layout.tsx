@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Noto_Sans_Thai } from "next/font/google";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
-import "@mantine/core/styles.css";
-import { theme } from "@/theme";
+import { Providers } from "@/shared/ui/Providers";
 import "./globals.css";
 
 const thai = Noto_Sans_Thai({
@@ -22,22 +20,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="th" className={`${thai.variable}`} suppressHydrationWarning>
-      <head>
-        <ColorSchemeScript defaultColorScheme="light" />
-      </head>
+    <html lang="th" className={thai.variable} suppressHydrationWarning>
       <body>
-        <MantineProvider theme={theme} defaultColorScheme="light">
-          <div
-            style={{
-              maxWidth: 960,
-              margin: "0 auto",
-              padding: "16px 16px 40px",
-            }}
-          >
-            {children}
-          </div>
-        </MantineProvider>
+        <Providers>
+          <div className="app-shell">{children}</div>
+        </Providers>
       </body>
     </html>
   );
