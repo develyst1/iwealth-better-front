@@ -49,7 +49,7 @@ export function AuthPage() {
       </div>
 
       <BorderBeam style={{ marginTop: 12 }}>
-        <Card bordered={false} styles={{ body: { padding: 24 } }}>
+        <Card styles={{ body: { padding: 24 } }}>
           <Segmented
             block
             value={mode}
