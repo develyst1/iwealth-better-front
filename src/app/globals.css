@@ -1,0 +1,131 @@
+:root {
+  color-scheme: light;
+  --brand: #0ca678;
+  --brand-soft: #e6fcf5;
+  --page-bg: #f6f8fa;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  font-family: var(--font-thai), sans-serif;
+}
+
+.app-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+}
+
+/* Magic — shimmer button sweep */
+.magic-shimmer-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.magic-shimmer-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.35) 45%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  animation: magic-shimmer 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes magic-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  60%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+/* Magic — border beam card */
+.magic-border-beam {
+  position: relative;
+  border-radius: 12px;
+  padding: 1px;
+  background: linear-gradient(
+    120deg,
+    #0ca678,
+    #38d9a9,
+    #63e6be,
+    #0ca678
+  );
+  background-size: 300% 300%;
+  animation: magic-beam-move var(--beam-duration, 6s) linear infinite;
+}
+
+.magic-border-beam__inner {
+  border-radius: 11px;
+  background: #fff;
+  overflow: hidden;
+}
+
+@keyframes magic-beam-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Login hero gradient */
+.login-hero {
+  background: linear-gradient(
+    135deg,
+    #e6fcf5 0%,
+    #f6f8fa 45%,
+    #d3f9d8 100%
+  );
+  background-size: 200% 200%;
+  animation: login-hero-shift 10s ease infinite;
+  border-radius: 12px;
+  padding: 20px 20px 8px;
+  margin-bottom: 8px;
+}
+
+@keyframes login-hero-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.stub-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  overflow-x: auto;
+}
+
+.stub-bars__bar {
+  width: 8px;
+  min-width: 8px;
+  border-radius: 2px;
+  background: var(--brand);
+  opacity: 0.85;
+}
