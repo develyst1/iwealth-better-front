@@ -316,7 +316,7 @@ export function ComparePage() {
                     <Space wrap>
                       <Tag>{ev.type}</Tag>
                       <Text>
-                        {ev.occurredAt.slice(0, 10)} — {ev.title}
+                        {ev.occurred_at.slice(0, 10)} — {ev.title}
                       </Text>
                     </Space>
                   </List.Item>

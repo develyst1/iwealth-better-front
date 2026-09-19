@@ -39,7 +39,7 @@ export type MarketEvent = {
   id: string;
   symbol: string;
   type: "filing" | "news" | "earnings" | "other";
-  occurredAt: string;
+  occurred_at: string;
   title: string;
   summary?: string;
   url?: string;

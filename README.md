@@ -7,7 +7,7 @@ Next.js + TypeScript + **Ant Design** + Magic UI accents stub for **iWealth Bett
 - Next.js App Router + TypeScript
 - Ant Design 5+ (`ConfigProvider`, Form, Table, Card, Menu, …) + `@ant-design/icons`
 - Magic UI accents (lightweight, no shadcn): `ShimmerButton`, `BorderBeam` under `src/shared/ui/magic/`
-- API client → `NEXT_PUBLIC_API_BASE` (default `http://localhost:8787/api/v0`)
+- API client → `NEXT_PUBLIC_API_BASE` (default `http://localhost:3010/api/v0`)
 - Auth: Bearer token in `localStorage` after login/register
 - LLM summarize: **back only** — front never calls `ai.develyst.online`
 
